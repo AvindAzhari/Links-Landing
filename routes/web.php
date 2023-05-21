@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Models\Link;
+use App\Models\LinkList;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,7 +16,23 @@ use App\Models\Link;
 */
 
 Route::get('/', function () {
+    $links = Link::orderBy('created_at', 'desc')->simplePaginate(4);
+
     return view('index', [
-        'links' => Link::all()->sortDesc()
+        'links' => $links,
+        'lists' => LinkList::all()
     ]);
 });
+
+Route::get('/{slug}', function ($slug) {
+    $list = LinkList::where('slug', $slug)->first();
+    if (!$list) {
+        abort(404);
+    }
+
+    return view('index', [
+        'list' => $list,
+        'links' => $list->links()->orderBy('created_at', 'desc')->simplePaginate(4),
+        'lists' => LinkList::all()
+    ]);
+})->name('link-list');
